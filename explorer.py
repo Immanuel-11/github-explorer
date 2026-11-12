@@ -1,8 +1,10 @@
 import requests
 
-response = requests.get("https://api.github.com/users/Immanuel-11")
-data = response.json()
-
-print(f"API status code: {response.status_code}")
-print(f"user name: {data['name']}")
-print(f"No. of repos: {data['public_repos']}")
+BASE = "https://api.github.com/users/Immanuel-11"
+response = requests.get(BASE+"/repos")
+repos = response.json()
+print(f"{requests.get(BASE).json()['name']} has {len(repos)} repos\n")
+language = lambda datum: datum['language'] if datum['language'] else "-"
+for repo in repos:
+    print(f"{repo['name']:<18}  |  {language(repo):<10} | \N{WHITE MEDIUM STAR} {repo['stargazers_count']}")
+    
