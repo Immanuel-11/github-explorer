@@ -1,5 +1,7 @@
 import requests
 import sys
+import json
+from pathlib import Path
 
 if len(sys.argv) < 2:
     print("Usage: python explorer.py <username>")
@@ -20,10 +22,23 @@ try:
     repos_response.raise_for_status()
     repos = repos_response.json()
     user = user_response.json()
-    print(f"{user['name']} has {len(repos)} repos\n")
+    user_repo = f"{user['name']} has {len(repos)} repos\n"
+    print(user_repo)
     for repo in repos:
-        language = lambda datum: datum['language'] if datum['language'] else "-"
-        print(f"{repo['name']:<18}  |  {language(repo):<10} | \N{WHITE MEDIUM STAR} {repo['stargazers_count']}")
+        language = repo["language"] or "-"
+        print(f"{repo['name']:<18}  |  {language:<10} | \N{WHITE MEDIUM STAR} {repo['stargazers_count']}")
+    output_dir = Path("output")
+    output_dir.mkdir(exist_ok=True)
+    summary = {
+        "name": user["name"],
+        "public_repos": len(repos),
+        "repos": [
+            {"name": r["name"], "language": r["language"], "stars": r["stargazers_count"]}
+            for r in repos
+        ],
+    }
+    with open(output_dir / f"{username}.json", "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
 except requests.exceptions.RequestException as e:
-    print(f"Request failed {e}")
+    print(f"Request failed: {e}")
     sys.exit(1)
